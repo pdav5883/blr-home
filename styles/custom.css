@@ -1,3 +1,11 @@
+img {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+.top {
+  margin-top: 5rem; }
+
 .container {
   max-width: 800px; }
 
