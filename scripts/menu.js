@@ -26,3 +26,43 @@ $(document).ready(function() {
 
   init();
 });
+
+var navmenu =
+'<ul class="navbar-list">' +
+  '<li class="navbar-item"><a class="navbar-link" href="/">Home</a></li>' +
+  '<li class="navbar-item">' +
+    '<a class="navbar-link" href="#" data-popover="#projectsPopover">Projects</a>' +
+    '<div id="projectsPopover" class="popover">' +
+      '<ul class="popover-list">' +
+        '<li class="popover-item">' +
+          '<a class="popover-link" href="https://sats.bearloves.rocks">sat-finder</a>' +
+        '</li>' +
+        '<li class="popover-item">' +
+          '<a class="popover-link" href="/wip.html">web-salad</a>' +
+        '</li>' +
+        '<li class="popover-item">' +
+          '<a class="popover-link" href="http://bowl-pickem-public.s3-website-us-east-1.amazonaws.com/">bowl-pickem</a>' +
+        '</li>' +
+        '<li class="popover-item">' +
+          '<a class="popover-link" href="/blog.html">Blog</a>' +
+        '</li>' +
+      '</ul>' +
+    '</div>' +
+  '</li>' +
+  '<li class="navbar-item">' +
+    '<a class="navbar-link" href="#" data-popover="#aboutPopover">About</a>' +
+    '<div id="aboutPopover" class="popover">' +
+      '<ul class="popover-list">' +
+        '<li class="popover-item">' +
+          '<a class="popover-link" href="/name.html">The Name</a>' +
+        '</li>' +
+        '<li class="popover-item">' +
+          '<a class="popover-link" href="/projects.html">The Projects</a>' +
+        '</li>' +
+        '<li class="popover-item">' +
+          '<a class="popover-link" href="/author.html">The Author</a>' +
+        '</li>' +
+      '</ul>' +
+    '</div>' +
+  '</li>' +
+'</ul>';
