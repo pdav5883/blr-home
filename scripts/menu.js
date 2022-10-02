@@ -41,7 +41,7 @@ var navmenu =
           '<a class="popover-link" href="/wip.html">web-salad</a>' +
         '</li>' +
         '<li class="popover-item">' +
-          '<a class="popover-link" href="http://bowl-pickem-public.s3-website-us-east-1.amazonaws.com/">bowl-pickem</a>' +
+          '<a class="popover-link" href="https://bowls.bearloves.rocks">bowl-pickem</a>' +
         '</li>' +
         '<li class="popover-item">' +
           '<a class="popover-link" href="/blog.html">Blog</a>' +
