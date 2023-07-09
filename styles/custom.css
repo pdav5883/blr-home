@@ -116,7 +116,8 @@ img {
     position: relative;
     color: #222;
     display: block;
-    padding: 8px 20px;
+    white-space: nowrap;
+    padding: 8px 10px;
     border-bottom: 1px solid #eee;
     text-decoration: none;
     text-transform: uppercase;
