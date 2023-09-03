@@ -38,7 +38,7 @@ var navmenu =
           '<a class="popover-link" href="https://sats.bearloves.rocks">sat-finder</a>' +
         '</li>' +
         '<li class="popover-item">' +
-          '<a class="popover-link" href="/wip.html">web-salad</a>' +
+          '<a class="popover-link" href="https://salad.bearloves.rocks">web-salad</a>' +
         '</li>' +
         '<li class="popover-item">' +
           '<a class="popover-link" href="https://bowls.bearloves.rocks">bowl-pickem</a>' +
