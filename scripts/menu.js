@@ -44,6 +44,9 @@ var navmenu =
           '<a class="popover-link" href="https://bowls.bearloves.rocks">bowl-pickem</a>' +
         '</li>' +
         '<li class="popover-item">' +
+          '<a class="popover-link" href="https://bracket.bearloves.rocks">bracket-revival</a>' +
+        '</li>' +
+        '<li class="popover-item">' +
           '<a class="popover-link" href="https://budget.bearloves.rocks">budget-tracker</a>' +
         '</li>' +
         '<li class="popover-item">' +
