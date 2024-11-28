@@ -1,34 +1,14 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <!-- Basic Page Needs -->
-  <meta charset="utf-8">
-  <title>BLR Projects</title>
-  <!-- Mobile Specific Metas -->
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <!-- FONT -->
-  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
-  <!-- <link href="/_tmp/fonts" rel="stylesheet" type="text/css"> -->
-  <!-- CSS -->
-  <link rel="stylesheet" href="/styles/normalize.css"> 
-  <link rel="stylesheet" href="/styles/skeleton.css">  
-  <link rel="stylesheet" href="/styles/custom.css">  
-  <!-- Favicon -->
-  <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-  <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
-  <script src="/scripts/menu.js"></script>
-</head>
-<body>
-    <div class="navbar-spacer"></div>
-    <nav class="navbar">
-      <div id="navmenucontainer" class="container navcontainer">
-      <script>
-	document.getElementById("navmenucontainer").innerHTML = navmenu
-      </script>
-      </div>
-    </nav>
-    <div class="top container">
-      <h2>Projects</h2>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= htmlWebpackPlugin.options.title %></title>
+  </head>
+  <body>
+    <div id="nav-placeholder"></div>
+    <div class="col-md-8 col-lg-6 mx-auto px-3 pt-md-5 mt-md-5">
+      <h1>Projects</h1>
       <p>The links below will take you to the code for each project. Use the menu above to navigate to the actual project.</p>
       <h3><a href="https://github.com/pdav5883/blr-home" target="_blank" rel="noopener noreferrer">blr-home</a></h3>
       <p>The thing you are looking at right this moment. This is a static website, meaning that your browser always gets the same thing when you navigate to the site (until I update the files themselves). Static sites are pretty limited, but also super easy to host so the simplicity pays off.</p>
