@@ -1,0 +1,11 @@
+[
+  "AcmSSLCertificateId=fc984629-2984-4666-8901-01ad4f48fc7f",
+  "HostedZoneId=Z0361942AJYCRL79BJEU",
+  "DeployedRootURL=home.bearloves.rocks",
+  "PublicBucketName=blr-home-public",
+  "LambdaUserAuthName=BLRUserAuth",
+  "LayerCommonName=BLRCommon",
+  "LambdaUserAuthPermissionName=blr-user-auth",
+  "CognitoUserPoolName=blr-users",
+  "CognitoAdminGroupName=blr-admin"
+]

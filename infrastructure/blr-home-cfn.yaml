@@ -1,0 +1,306 @@
+Parameters:
+  PublicBucketName:
+    Type: String
+  LayerCommonName:
+    Type: String
+  LambdaUserAuthName:
+    Type: String
+  CognitoUserPoolName:
+    Type: String
+  CognitoAdminGroupName:
+    Type: String
+  AcmSSLCertificateId:
+    Type: String
+  HostedZoneId:
+    Type: String
+  DeployedRootURL:
+    Type: String
+  LambdaUserAuthPermissionName:
+    Type: String
+Outputs:
+  UserPoolArn:
+    Value: !GetAtt CognitoBLRUserPool.Arn
+  UserPoolId:
+    Value: !Ref CognitoBLRUserPool
+  UserPoolClientId:
+    Value: !Ref CognitoBLRUserPoolClient
+  CloudFrontDistroId:
+    Value: !Ref CloudFrontDistroHome
+
+Resources:
+############################
+##### Lambda 
+############################
+  LambdaBLRUserAuth:
+    Type: "AWS::Lambda::Function"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName: !Ref LambdaUserAuthName 
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+                # upload code via lambda deploy script
+                return False
+      Layers:
+        - !Ref LayerBLRCommon
+      Role: !GetAtt RoleBLRUserAuth.Arn 
+      FileSystemConfigs: []
+      Runtime: "python3.12"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: !Ref LogBLRUserAuth
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  RoleBLRUserAuth:
+    Type: "AWS::IAM::Role"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      Path: "/"
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      - !GetAtt PolicyBLRUserAuth.PolicyArn
+      MaxSessionDuration: 3600
+      RoleName: !Sub "role-lambda-${LambdaUserAuthPermissionName}"
+      Description: ""
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Action: "sts:AssumeRole"
+          Effect: "Allow"
+          Principal:
+            Service: "lambda.amazonaws.com"
+  PolicyBLRUserAuth:
+    Type: "AWS::IAM::ManagedPolicy"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      ManagedPolicyName: !Sub "policy-lambda-${LambdaUserAuthPermissionName}"
+      Path: "/"
+      Description: ""
+      Groups: []
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          Resource: !GetAtt CognitoBLRUserPool.Arn
+          Action:
+          - "cognito-idp:AdminGetUser"
+          - "cognito-idp:AdminUpdateUserAttributes"
+          - "cognito-idp:AdminListGroupsForUser"
+          - "cognito-idp:ListUsers"
+          - "cognito-idp:GetUser"
+          Effect: "Allow"
+          Sid: "VisualEditor0"
+  LayerBLRCommon:
+    Type: "AWS::Lambda::LayerVersion"
+    Properties:
+      LayerName: !Ref LayerCommonName
+      Content:
+        S3Bucket: !Ref S3HomePublic
+        S3Key: !Sub "empty_layer.zip"
+      CompatibleRuntimes:
+        - "python3.12"
+      CompatibleArchitectures:
+        - "x86_64"
+############################
+#### S3
+############################
+  S3HomePublic:
+    Type: "AWS::S3::Bucket"
+    UpdateReplacePolicy: "Retain"
+    DeletionPolicy: "Retain"
+    Properties:
+      PublicAccessBlockConfiguration:
+        RestrictPublicBuckets: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        BlockPublicAcls: true
+      BucketName: !Ref PublicBucketName
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: "BucketOwnerEnforced" 
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+        - BucketKeyEnabled: false
+          ServerSideEncryptionByDefault:
+            SSEAlgorithm: "AES256"
+
+############################
+#### Cognito
+############################
+  CognitoBLRUserPool:
+    Type: "AWS::Cognito::UserPool"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Retain"
+    Properties:
+      UserPoolName: !Ref CognitoUserPoolName
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: given_name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: family_name
+          AttributeDataType: String
+          Mutable: true
+          Required: true
+        - Name: name
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: is_admin
+          AttributeDataType: Boolean
+          Mutable: true
+          Required: false
+        - Name: custom:is_admin
+          AttributeDataType: Boolean
+          Mutable: true
+          Required: false
+      # lambd arns are hard-coded to avoid circular dependencies
+      LambdaConfig:
+        CreateAuthChallenge: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaUserAuthName}"
+        DefineAuthChallenge: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaUserAuthName}"
+        PostAuthentication: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaUserAuthName}"
+        PreSignUp: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaUserAuthName}"
+        VerifyAuthChallengeResponse: !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${LambdaUserAuthName}"
+  CognitoBLRUserPoolClient:
+    Type: "AWS::Cognito::UserPoolClient"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Retain"
+    Properties:
+      UserPoolId: !Ref CognitoBLRUserPool
+      ClientName: !Sub "${CognitoUserPoolName}-client"
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      PreventUserExistenceErrors: LEGACY
+      AuthSessionValidity: 3
+      RefreshTokenValidity: 1000
+      AccessTokenValidity: 1
+      IdTokenValidity: 1
+      TokenValidityUnits:
+        RefreshToken: days
+        IdToken: hours
+        AccessToken: hours
+  CognitoBLRAdminGroup:
+    Type: AWS::Cognito::UserPoolGroup
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Retain"
+    Properties:
+      GroupName: !Ref CognitoAdminGroupName
+      UserPoolId: !Ref CognitoBLRUserPool
+
+############################
+#### CloudFront, Route53
+############################
+  CloudFrontDistroHome:
+    Type: "AWS::CloudFront::Distribution"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      DistributionConfig:
+        DefaultRootObject: "index.html"
+        Origins:
+        - OriginAccessControlId: "EWO8FEYV4CJHK"
+          DomainName: !GetAtt S3HomePublic.RegionalDomainName
+          S3OriginConfig:
+            OriginAccessIdentity: ""
+          Id: !GetAtt S3HomePublic.RegionalDomainName
+        ViewerCertificate:
+          MinimumProtocolVersion: "TLSv1.2_2021"
+          SslSupportMethod: "sni-only"
+          AcmCertificateArn: !Sub "arn:aws:acm:${AWS::Region}:${AWS::AccountId}:certificate/${AcmSSLCertificateId}"
+        DefaultCacheBehavior:
+          Compress: true
+          AllowedMethods:
+          - "HEAD"
+          - "GET"
+          CachedMethods:
+          - "HEAD"
+          - "GET"
+          TargetOriginId: !GetAtt S3HomePublic.RegionalDomainName 
+          ViewerProtocolPolicy: "redirect-to-https"
+          CachePolicyId: "658327ea-f89d-4fab-a63d-7e88639e58f6"
+        Staging: false
+        Enabled: true
+        Aliases:
+        - !Ref DeployedRootURL 
+        IPV6Enabled: true
+        HttpVersion: "http2"
+  S3BucketPolicyHome:
+    Type: "AWS::S3::BucketPolicy"
+    UpdateReplacePolicy: "Retain"
+    DeletionPolicy: "Delete"
+    Properties:
+      Bucket: !Ref S3HomePublic
+      PolicyDocument:
+        Version: "2008-10-17"
+        Statement:
+        - Condition:
+            StringEquals:
+              AWS:SourceArn: !Ref CloudFrontDistroHome
+          Resource: !Sub "${S3HomePublic.Arn}/*"
+          Action: "s3:GetObject"
+          Effect: "Allow"
+          Principal:
+            Service: "cloudfront.amazonaws.com"
+          Sid: "AllowCloudFrontServicePrincipal"
+        Id: "PolicyForCloudFrontPrivateContent"
+  Route53ARecordHome:
+    Type: "AWS::Route53::RecordSet"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      Type: "A"
+      Name: !Ref DeployedRootURL
+      HostedZoneId: !Ref HostedZoneId
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistroHome.DomainName
+        HostedZoneId: "Z2FDTNDATAQYW2"
+  Route53AAAARecordHome:
+    Type: "AWS::Route53::RecordSet"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      Type: "AAAA"
+      Name: !Ref DeployedRootURL 
+      HostedZoneId: !Ref HostedZoneId
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistroHome.DomainName
+        HostedZoneId: "Z2FDTNDATAQYW2"
+  LogBLRUserAuth:
+    Type: "AWS::Logs::LogGroup"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaUserAuthName}"
+      RetentionInDays: 7
