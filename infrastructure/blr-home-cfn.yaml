@@ -18,14 +18,29 @@ Parameters:
   LambdaUserAuthPermissionName:
     Type: String
 Outputs:
-  UserPoolArn:
-    Value: !GetAtt CognitoBLRUserPool.Arn
-  UserPoolId:
-    Value: !Ref CognitoBLRUserPool
-  UserPoolClientId:
-    Value: !Ref CognitoBLRUserPoolClient
   CloudFrontDistroId:
     Value: !Ref CloudFrontDistroHome
+  
+  UserPoolArn:
+    Value: !GetAtt CognitoBLRUserPool.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-UserPoolArn"
+  UserPoolId:
+    Value: !Ref CognitoBLRUserPool
+    Export:
+      Name: !Sub "${AWS::StackName}-UserPoolId"
+  UserPoolClientId:
+    Value: !Ref CognitoBLRUserPoolClient
+    Export:
+      Name: !Sub "${AWS::StackName}-UserPoolClientId"
+  LambdaUserAuthArn:
+    Value: !GetAtt LambdaBLRUserAuth.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-LambdaUserAuthArn"
+  CommonLayer:
+    Value: !Ref LayerBLRCommon
+    Export:
+      Name: !Sub "${AWS::StackName}-CommonLayer"
 
 Resources:
 ############################

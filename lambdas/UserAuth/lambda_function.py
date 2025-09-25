@@ -25,14 +25,28 @@ def lambda_handler(event, context):
         raise Exception("Invalid auth event")
     
 def handle_endpoint_auth(event, context):
-    if event.get("authType", "") == "user":
-        return user_endpoint_auth(event, context)
-    elif event.get("authType", "") == "admin":
-        return admin_endpoint_auth(event, context)
+    if event.get("authType", "") == "anyUser":
+        return any_user_endpoint_auth(event, context)
+    elif event.get("authType", "") == "specificUser":
+        return specific_user_endpoint_auth(event, context)
+    elif event.get("authType", "") == "adminUser":
+        return admin_user_endpoint_auth(event, context)
     else:
         return {"isAuthorized": False}
+
+def any_user_endpoint_auth(event, context):
+    # confirm that pid matches cognito user name
+    access_token = event.get('accessToken', '')
     
-def user_endpoint_auth(event, context):
+    if not access_token:
+        return {"isAuthorized": False}
+
+    if blr_utils.get_user_cognito(access_token) is not None:
+        return {"isAuthorized": True}
+    else:
+        return {"isAuthorized": False}
+  
+def specific_user_endpoint_auth(event, context):
     # compare the pid of the request with the pid of the signed in user
     user_id = event.get('userID', '')
 
@@ -42,21 +56,20 @@ def user_endpoint_auth(event, context):
     if not access_token or not user_id:
         return {"isAuthorized": False}
 
-    cognito_user_id,  = utils.get_user_attribute(access_token, ["name"])
+    cognito_user_id,  = blr_utils.get_user_attribute(access_token, ["name"])
 
-    
     if cognito_user_id == user_id:
         return {"isAuthorized": True}
     else:
         return {"isAuthorized": False}
 
-def admin_endpoint_auth(event, context):
+def admin_user_endpoint_auth(event, context):
     access_token = event.get('accessToken', '')
     
     if not access_token:
         return {"isAuthorized": False}
 
-    user = utils.get_user(access_token)
+    user = blr_utils.get_user_cognito(access_token)
 
     if user_is_admin(user['Username']):
         return {"isAuthorized": True}
@@ -144,7 +157,7 @@ def create_auth_challenge(event, context):
         email_msg = {"typ": "verify", "content": {"verify_path": verify_path}, "recipient_names": [name], "recipient_emails": [email]}
         
         try:
-            utils.trigger_email(email_msg)
+            blr_utils.trigger_email(email_msg) # TODO - FIX
         
         except ClientError as e:
             print(f"Error sending email: {str(email_msg)}")

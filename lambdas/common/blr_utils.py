@@ -41,13 +41,22 @@ def read_parameter_ssm(name):
 
 
 def get_user_cognito(access_token):
-    return cognito.get_user(AccessToken=access_token)
-
+    try:
+        return cognito.get_user(AccessToken=access_token)
+    except ClientError as e:
+        error_code = e.response['Error']['Code']
+        if error_code == 'NotAuthorizedException':
+            return None  # or raise a custom exception
+        else:
+            raise e  # Re-raise other errors
 
 def get_user_attribute_cognito(access_token, attribute):
+    user = get_user_cognito(access_token)
+    if user is None:  # Handle invalid token case
+        return None
+    
     # Handle single attribute case
     if isinstance(attribute, str):
-        user = get_user_cognito(access_token)
         for attr in user['UserAttributes']:
             if attr['Name'] == attribute:
                 return attr['Value']
@@ -55,14 +64,12 @@ def get_user_attribute_cognito(access_token, attribute):
     
     # Handle multiple attributes case
     if isinstance(attribute, (list, tuple)):
-        user = get_user_cognito(access_token)
         attr_values = [None] * len(attribute)
         for i, attr_name in enumerate(attribute):
             for attr in user['UserAttributes']:
                 if attr['Name'] == attr_name:
                     attr_values[i] = attr['Value']
                     break
-                
         return tuple(attr_values)
     
     return None
