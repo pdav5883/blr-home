@@ -17,10 +17,17 @@ Parameters:
     Type: String
   LambdaUserAuthPermissionName:
     Type: String
+  LambdaSendEmailPermissionName:
+    Type: String
+  LambdaSendEmailName:
+    Type: String
+  SNSTopicEmailName:
+    Type: String
+  SesIdentity:
+    Type: String
 Outputs:
   CloudFrontDistroId:
     Value: !Ref CloudFrontDistroHome
-  
   UserPoolArn:
     Value: !GetAtt CognitoBLRUserPool.Arn
     Export:
@@ -37,10 +44,18 @@ Outputs:
     Value: !GetAtt LambdaBLRUserAuth.Arn
     Export:
       Name: !Sub "${AWS::StackName}-LambdaUserAuthArn"
-  CommonLayer:
-    Value: !Ref LayerBLRCommon
+  LayerCommonName:
+    Value: !Ref LayerCommonName
     Export:
-      Name: !Sub "${AWS::StackName}-CommonLayer"
+      Name: !Sub "${AWS::StackName}-CommonLayerName"
+  LayerCommonArn:
+    Value: !GetAtt LayerBLRCommon.LayerVersionArn
+    Export:
+      Name: !Sub "${AWS::StackName}-CommonLayerArn"
+  EmailTopicArn:
+    Value: !GetAtt SNSTopicBLREmail.TopicArn
+    Export:
+      Name: !Sub "${AWS::StackName}-EmailTopicArn"
 
 Resources:
 ############################
@@ -109,7 +124,8 @@ Resources:
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
-          Resource: !GetAtt CognitoBLRUserPool.Arn
+        - Resource:
+          - !GetAtt CognitoBLRUserPool.Arn
           Action:
           - "cognito-idp:AdminGetUser"
           - "cognito-idp:AdminUpdateUserAttributes"
@@ -117,7 +133,77 @@ Resources:
           - "cognito-idp:ListUsers"
           - "cognito-idp:GetUser"
           Effect: "Allow"
-          Sid: "VisualEditor0"
+        - Resource:
+          - !GetAtt SNSTopicBLREmail.TopicArn
+          Action:
+          - "sns:Publish"
+          Effect: "Allow"
+  LambdaBLRSendEmail:
+    Type: "AWS::Lambda::Function"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName: !Ref LambdaSendEmailName
+      MemorySize: 128
+      Description: ""
+      TracingConfig:
+        Mode: "PassThrough"
+      Timeout: 3
+      RuntimeManagementConfig:
+        UpdateRuntimeOn: "Auto"
+      Handler: "lambda_function.lambda_handler"
+      Code:
+        ZipFile: |
+          def lambda_handler(event, context):
+                # upload code via lambda deploy script
+                return False
+      Role: !GetAtt RoleBLRSendEmail.Arn
+      FileSystemConfigs: []
+      Runtime: "python3.12"
+      PackageType: "Zip"
+      LoggingConfig:
+        LogFormat: "Text"
+        LogGroup: !Ref LogBLRSendEmail
+      EphemeralStorage:
+        Size: 512
+      Architectures:
+      - "x86_64"
+  RoleBLRSendEmail:
+    Type: "AWS::IAM::Role"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      Path: "/"
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      - !GetAtt PolicyBLRSendEmail.PolicyArn
+      MaxSessionDuration: 3600
+      RoleName: !Sub "role-lambda-${LambdaSendEmailPermissionName}"
+      Description: ""
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Action: "sts:AssumeRole"
+          Effect: "Allow"
+          Principal:
+            Service: "lambda.amazonaws.com"
+  PolicyBLRSendEmail:
+    Type: "AWS::IAM::ManagedPolicy"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      ManagedPolicyName: !Sub "policy-lambda-${LambdaSendEmailPermissionName}"
+      Path: "/"
+      Description: ""
+      Groups: []
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Resource:
+          - !Sub "arn:aws:ses:${AWS::Region}:${AWS::AccountId}:identity/${SesIdentity}"
+          Action:
+          - "ses:SendEmail"
+          Effect: "Allow"
   LayerBLRCommon:
     Type: "AWS::Lambda::LayerVersion"
     Properties:
@@ -151,7 +237,32 @@ Resources:
         - BucketKeyEnabled: false
           ServerSideEncryptionByDefault:
             SSEAlgorithm: "AES256"
-
+############################
+#### SNS
+############################
+  SNSTopicBLREmail:
+    Type: "AWS::SNS::Topic"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      TopicName: !Ref SNSTopicEmailName
+  SNSSubscriptionBLREmail:
+    Type: "AWS::SNS::Subscription"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      Protocol: "lambda"
+      TopicArn: !GetAtt SNSTopicBLREmail.TopicArn
+      Endpoint: !GetAtt LambdaBLRSendEmail.Arn
+  SNSTriggerPermissionBLREmail:
+    Type: "AWS::Lambda::Permission"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      FunctionName: !GetAtt LambdaBLRSendEmail.Arn
+      Action: "lambda:InvokeFunction"
+      SourceArn: !GetAtt SNSTopicBLREmail.TopicArn
+      Principal: "sns.amazonaws.com"
 ############################
 #### Cognito
 ############################
@@ -233,6 +344,13 @@ Resources:
     Properties:
       GroupName: !Ref CognitoAdminGroupName
       UserPoolId: !Ref CognitoBLRUserPool
+  CognitoBLRLambdaTriggerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !GetAtt LambdaBLRUserAuth.Arn
+      Action: lambda:InvokeFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !GetAtt CognitoBLRUserPool.Arn
 
 ############################
 #### CloudFront, Route53
@@ -318,4 +436,11 @@ Resources:
     DeletionPolicy: "Delete"
     Properties:
       LogGroupName: !Sub "/aws/lambda/${LambdaUserAuthName}"
+      RetentionInDays: 7
+  LogBLRSendEmail:
+    Type: "AWS::Logs::LogGroup"
+    UpdateReplacePolicy: "Delete"
+    DeletionPolicy: "Delete"
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${LambdaSendEmailName}"
       RetentionInDays: 7

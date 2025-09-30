@@ -8,6 +8,7 @@ from blr_common import blr_utils
 
 user_pool_id = SUB_UserPoolId
 admin_group_name = SUB_CognitoAdminGroupName
+email_topic_arn = SUB_EmailTopicArn
 
 cognito = boto3.client('cognito-idp')
 ses = boto3.client('ses')
@@ -157,7 +158,7 @@ def create_auth_challenge(event, context):
         email_msg = {"typ": "verify", "content": {"verify_path": verify_path}, "recipient_names": [name], "recipient_emails": [email]}
         
         try:
-            blr_utils.trigger_email(email_msg) # TODO - FIX
+            blr_utils.trigger_email_sns(email_topic_arn, email_msg)
         
         except ClientError as e:
             print(f"Error sending email: {str(email_msg)}")

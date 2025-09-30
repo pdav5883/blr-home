@@ -6,6 +6,7 @@ from botocore.exceptions import ClientError
 s3 = boto3.client("s3")
 ssm = boto3.client("ssm")
 cognito = boto3.client("cognito-idp")
+sns = boto3.client("sns")
 
 def key_exists_s3(bucket, key):
     try:
@@ -73,3 +74,13 @@ def get_user_attribute_cognito(access_token, attribute):
         return tuple(attr_values)
     
     return None
+
+def trigger_email_sns(email_topic_arn, emailbatch):
+    # emailbatch: {"typ": t , "content": {}, "recipients": [pname1, pname2,...]}
+    msg = json.dumps(emailbatch)
+
+    try:
+        response = sns.publish(TopicArn=email_topic_arn, Message=msg)
+    except ClientError as e:
+        print(f"Error sending email batch: {msg}")
+        raise e

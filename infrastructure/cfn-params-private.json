@@ -4,8 +4,12 @@
   "DeployedRootURL=home.bearloves.rocks",
   "PublicBucketName=blr-home-public",
   "LambdaUserAuthName=BLRUserAuth",
+  "LambdaSendEmailName=BLRSendEmail",
   "LayerCommonName=BLRCommon",
   "LambdaUserAuthPermissionName=blr-user-auth",
+  "LambdaSendEmailPermissionName=blr-send-email",
   "CognitoUserPoolName=blr-users",
-  "CognitoAdminGroupName=blr-admin"
+  "CognitoAdminGroupName=blr-admin",
+  "SNSTopicEmailName=blr-email-topic",
+  "SesIdentity=bearloves.rocks"
 ]
