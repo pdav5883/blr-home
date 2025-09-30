@@ -18,7 +18,7 @@ while IFS= read -r line; do
     key=$(echo "$line" | awk '{print $1}')
     value=$(echo "$line" | awk '{print $2}')
     CF_PARAMS["$key"]="$value"
-done < <(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query 'Stacks[0].Outputs[OutputKey,OutputValue]' --output text | awk '{print $1, $2}')
+done < <(aws cloudformation describe-stacks --stack-name "$STACK_NAME" --query 'Stacks[0].Outputs[].[OutputKey,OutputValue]' --output text | awk '{print $1, $2}')
 
 # Build webpack
 echo "Building frontend files with webpack..."

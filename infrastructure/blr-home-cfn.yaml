@@ -355,6 +355,14 @@ Resources:
 ############################
 #### CloudFront, Route53
 ############################
+  CloudFrontOACHome:
+    Type: "AWS::CloudFront::OriginAccessControl"
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${AWS::StackName}-OAC"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
   CloudFrontDistroHome:
     Type: "AWS::CloudFront::Distribution"
     UpdateReplacePolicy: "Delete"
@@ -363,7 +371,7 @@ Resources:
       DistributionConfig:
         DefaultRootObject: "index.html"
         Origins:
-        - OriginAccessControlId: "EWO8FEYV4CJHK"
+        - OriginAccessControlId: !Ref CloudFrontOACHome
           DomainName: !GetAtt S3HomePublic.RegionalDomainName
           S3OriginConfig:
             OriginAccessIdentity: ""
@@ -400,7 +408,7 @@ Resources:
         Statement:
         - Condition:
             StringEquals:
-              AWS:SourceArn: !Ref CloudFrontDistroHome
+              AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistroHome}"
           Resource: !Sub "${S3HomePublic.Arn}/*"
           Action: "s3:GetObject"
           Effect: "Allow"

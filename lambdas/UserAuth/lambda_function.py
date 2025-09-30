@@ -9,6 +9,7 @@ from blr_common import blr_utils
 user_pool_id = SUB_UserPoolId
 admin_group_name = SUB_CognitoAdminGroupName
 email_topic_arn = SUB_EmailTopicArn
+root_url = SUB_DeployedRootURL
 
 cognito = boto3.client('cognito-idp')
 ses = boto3.client('ses')
@@ -155,7 +156,7 @@ def create_auth_challenge(event, context):
         # Build verification link with code
         verify_path = f"login.html?code={code}&email={email}"
 
-        email_msg = {"typ": "verify", "content": {"verify_path": verify_path}, "recipient_names": [name], "recipient_emails": [email]}
+        email_msg = {"template": verify_template, "content": {"verify_url": f"https://{root_url}/{verify_path}"}, "recipient_names": [name], "recipient_emails": [email]}
         
         try:
             blr_utils.trigger_email_sns(email_topic_arn, email_msg)
@@ -217,3 +218,24 @@ def user_is_admin(user_name):
         Username=user_name
     )
     return admin_group_name in [group['GroupName'] for group in response['Groups']]
+
+
+verify_template = {"subject": "Sign In to Bear Loves Rocks",
+                  "body": "<html>\
+                             <head>\
+                               <style>\
+                                 body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }\
+                                 .content { max-width: 600px; margin: 0 auto; }\
+                                 .timestamp { font-size: 7pt; color: #999; margin-top: 15px; text-align: right; }\
+                               </style>\
+                             </head>\
+                             <body>\
+                               <div class='content'>\
+                                 <div class='timestamp'>{{timestamp}}</div>\
+                                 <p>Hi {{name}},</p>\
+                                 <p>Click <a href='{{verify_url}}'>HERE</a> to sign in to Bear Loves Rocks.</p>\
+                                 <p>From,<br>The BLR Security Team</p>\
+                                 <div class='timestamp'>{{timestamp}}</div>\
+                               </div>\
+                             </body>\
+                           </html>"}

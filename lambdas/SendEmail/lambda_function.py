@@ -31,19 +31,16 @@ def lambda_handler(event, context):
         batch = json.loads(msg["Sns"]["Message"])
 
         # populate other content
-        email_type = batch["typ"]
+        template = batch["template"]
         content = batch["content"]
-
-        if email_type == "verify":
-            content["verify_url"] = f"https://{root_url}/{content['verify_path']}"
             
         for name, email in zip(batch["recipient_names"], batch["recipient_emails"]):
             content["name"] = name.split(" ")[0] # first name only
             # Add timestamp to content
             content["timestamp"] = datetime.now(UTC).strftime("%Y-%m-%d %H:%M:%S UTC")
 
-            subject = templates[email_type]["subject"]
-            body = templates[email_type]["body"]
+            subject = template["subject"]
+            body = template["body"]
 
             for key, val in content.items():
                 subject = subject.replace("{{" + key + "}}", str(val))
@@ -64,26 +61,3 @@ def lambda_handler(event, context):
         print("Sent batch: ", batch)
 
     return "Successfully sent messages"
-
-verify_template = {"subject": "Sign In to Bear Loves Rocks",
-                  "body": "<html>\
-                             <head>\
-                               <style>\
-                                 body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }\
-                                 .content { max-width: 600px; margin: 0 auto; }\
-                                 .timestamp { font-size: 7pt; color: #999; margin-top: 15px; text-align: right; }\
-                               </style>\
-                             </head>\
-                             <body>\
-                               <div class='content'>\
-                                 <div class='timestamp'>{{timestamp}}</div>\
-                                 <p>Hi {{name}},</p>\
-                                 <p>Click <a href='{{verify_url}}'>HERE</a> to sign in to Bear Loves Rocks.</p>\
-                                 <p>From,<br>The BLR Security Team</p>\
-                                 <div class='timestamp'>{{timestamp}}</div>\
-                               </div>\
-                             </body>\
-                           </html>"}
-
-templates = {"verify": verify_template}
-
