@@ -86,10 +86,6 @@ module.exports = {
     new CopyWebpack({
       patterns: [
         {
-          from: "./src/nav.html",
-          to: "assets",
-        },
-        {
           from: './src/images',
           to: 'assets'
         }

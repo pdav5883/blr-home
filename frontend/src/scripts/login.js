@@ -10,9 +10,9 @@ import {
 import {
     initCommon,
     initButtons,
-    isAuthenticated,
     spinnerOn,
-    spinnerOff
+    spinnerOff,
+    isAuthenticated,
 } from "./shared.js"
 
 import $ from "jquery"

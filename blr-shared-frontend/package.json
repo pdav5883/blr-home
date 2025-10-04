@@ -1,0 +1,41 @@
+{
+  "name": "blr-shared-frontend",
+  "version": "1.0.0",
+  "description": "Shared frontend components for Bear Loves Rocks projects",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "src/**/*",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "webpack --mode production",
+    "dev": "webpack --mode development --watch",
+    "prepare": "npm run build"
+  },
+  "keywords": [
+    "navbar",
+    "frontend",
+    "shared",
+    "bear-loves-rocks"
+  ],
+  "author": "Bear Loves Rocks",
+  "license": "MIT",
+  "dependencies": {
+    "bootstrap": "^5.0.0",
+    "jquery": "^3.5.0"
+  },
+  "devDependencies": {
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4",
+    "css-loader": "^6.10.0",
+    "style-loader": "^3.3.4",
+    "typescript": "^5.0.0",
+    "@types/jquery": "^3.5.0"
+  },
+  "peerDependencies": {
+    "bootstrap": "^5.0.0",
+    "jquery": "^3.5.0"
+  }
+}
