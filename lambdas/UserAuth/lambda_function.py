@@ -58,7 +58,7 @@ def specific_user_endpoint_auth(event, context):
     if not access_token or not user_id:
         return {"isAuthorized": False}
 
-    cognito_user_id,  = blr_utils.get_user_attribute(access_token, ["name"])
+    cognito_user_id,  = blr_utils.get_user_attribute_cognito(access_token, ["name"])
 
     if cognito_user_id == user_id:
         return {"isAuthorized": True}
