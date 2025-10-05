@@ -4,17 +4,32 @@
  * @returns {string} - HTML string for the navbar
  */
 export function generateNavbarHTML(config) {
-  const { brand, projects = [], about = [] } = config;
+  const { brand, sections = [] } = config;
   
-  // Generate projects dropdown items
-  const projectsItems = projects.map(project => 
-    `<li><a class="dropdown-item" href="${project.url}"><em>${project.name}</em></a></li>`
-  ).join('\n\t\t\t\t');
-  
-  // Generate about dropdown items
-  const aboutItems = about.map(item => 
-    `<li><a class="dropdown-item" href="${item.url}">${item.name}</a></li>`
-  ).join('\n\t\t\t\t');
+  // Generate navbar sections
+  const navbarSections = sections.map(section => {
+    if (section.type === 'dropdown') {
+      // Generate dropdown items
+      const dropdownItems = section.items.map(item => 
+        `<li><a class="dropdown-item" href="${item.url}">${item.name}</a></li>`
+      ).join('\n\t\t\t\t');
+      
+      return `
+\t\t<li class="nav-item px-md-2 dropdown">
+\t\t  <a class="nav-link active dropdown-toggle" href="#" data-bs-toggle="dropdown">${section.label}</a>
+\t\t  <ul class="dropdown-menu">
+\t\t\t\t${dropdownItems}
+\t\t  </ul>
+\t\t</li>`;
+    } else if (section.type === 'link') {
+      // Generate direct link
+      return `
+\t\t<li class="nav-item px-md-2">
+\t\t  <a class="nav-link active" href="${section.url}">${section.label}</a>
+\t\t</li>`;
+    }
+    return '';
+  }).join('');
   
   return `
 <nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
@@ -28,20 +43,7 @@ export function generateNavbarHTML(config) {
     </button>
     <div class="collapse navbar-collapse" id="navbarCollapse">
       <ul class="navbar-nav me-auto mb-2 mb-md-0">
-${projects.length > 0 ? `
-\t\t<li class="nav-item px-md-2 dropdown">
-\t\t  <a class="nav-link active dropdown-toggle h4" href="#" data-bs-toggle="dropdown">Projects</a>
-\t\t  <ul class="dropdown-menu">
-\t\t\t\t${projectsItems}
-\t\t  </ul>
-\t\t</li>` : ''}
-${about.length > 0 ? `
-\t\t<li class="nav-item px-md-2 dropdown">
-\t\t  <a class="nav-link active dropdown-toggle h4" href="#" data-bs-toggle="dropdown">About</a>
-\t\t  <ul class="dropdown-menu">
-\t\t\t\t${aboutItems}
-\t\t  </ul>
-\t\t</li>` : ''}
+${navbarSections}
       </ul>
     </div>
 \t\t<div class="d-flex">

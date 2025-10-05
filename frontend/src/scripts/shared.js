@@ -15,7 +15,6 @@ const client = new CognitoIdentityProviderClient({
 
 // Common init of navbar using shared package
 export function initCommon() {
-  console.log('Frontend event listeners set up complete');
   
   // Initialize navbar with callback to set up button handlers
   initNavbar(navbarConfig, () => {    

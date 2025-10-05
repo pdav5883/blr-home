@@ -1,6 +1,7 @@
 import $ from "jquery"
 import "bootstrap/dist/css/bootstrap.min.css"
 import "bootstrap"
+import "./navbar.css"
 import { generateNavbarHTML } from "./navbar-generator.js"
 
 /**
@@ -13,7 +14,7 @@ export function initNavbar(config, callback) {
     const navbarHTML = generateNavbarHTML(config);    
     // Replace the nav placeholder with generated navbar
     $("#nav-placeholder").replaceWith(navbarHTML);
-    
+      
     // Call the callback after DOM is updated
     if (callback) {
       setTimeout(callback, 0);

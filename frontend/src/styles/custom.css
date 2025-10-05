@@ -82,36 +82,6 @@
   scroll-margin-top: 4rem;
 }
 
-/* Mobile navbar - keep hamburger centered */
-@media (max-width: 767.98px) {
-  .navbar .container-fluid {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  
-  .navbar-toggler {
-    order: 2;
-    flex: 0 0 auto;
-  }
-  
-  .navbar-brand {
-    order: 1;
-    flex: 0 0 auto;
-  }
-  
-  .navbar .d-flex {
-    order: 3;
-    flex: 0 0 auto;
-  }
-  
-  .navbar-collapse {
-    order: 4;
-    flex: 1 1 100%;
-    width: 100%;
-  }
-}
-
 /* Layout */
 @media (min-width: 768px) {
   .toc-body {

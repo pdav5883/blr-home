@@ -19,23 +19,34 @@ npm install blr-shared-frontend
 export const navbarConfig = {
   // Brand/logo configuration
   brand: {
-    image: './assets/bear1.svg',
+    image: './assets/your-logo.svg',
     link: '/',
-    alt: 'Bear logo'
+    alt: 'Your project logo'
   },
   
-  // Project links in dropdown
-  projects: [
-    { name: 'bowl-pickem', url: 'https://bowls.bearloves.rocks' },
-    { name: 'bracket-revival', url: 'https://bracket.bearloves.rocks' },
-    // ... more projects
-  ],
-  
-  // About links in dropdown
-  about: [
-    { name: 'The Name', url: '/name.html' },
-    { name: 'The Projects', url: '/projects.html' },
-    { name: 'The Author', url: '/author.html' }
+  // Generic sections - can be dropdowns or direct links
+  sections: [
+    {
+      type: 'dropdown',
+      label: 'Projects',
+      items: [
+        { name: 'project-1', url: 'https://project1.example.com' },
+        { name: 'project-2', url: 'https://project2.example.com' }
+      ]
+    },
+    {
+      type: 'link',
+      label: 'About',
+      url: '/about.html'
+    },
+    {
+      type: 'dropdown',
+      label: 'Resources',
+      items: [
+        { name: 'Documentation', url: '/docs.html' },
+        { name: 'Support', url: '/support.html' }
+      ]
+    }
   ]
 };
 ```
@@ -49,29 +60,30 @@ import { navbarConfig } from './navbar-config.js';
 
 // Initialize navbar when DOM is ready
 $(function() {
-  initNavbar(navbarConfig);
-  
-  // Set up your authentication event handlers
+  // Set up your authentication event handlers FIRST
   $(document).on('navbar:signin:click', () => {
-    // Handle sign in click
+    // Handle sign in click - customize for your project
     window.location.href = '/login.html';
   });
   
   $(document).on('navbar:admin:click', () => {
-    // Handle admin click
+    // Handle admin click - customize for your project
     window.location.href = '/admin.html';
   });
   
   $(document).on('navbar:signout:click', () => {
-    // Handle sign out click
+    // Handle sign out click - customize for your project
     yourSignOutFunction();
   });
   
-  // Update navbar authentication state
-  updateNavbarAuth(isUserAuthenticated(), {
-    firstName: userFirstName,
-    lastName: userLastName,
-    isAdmin: isUserAdmin
+  // Initialize navbar with callback to update auth state
+  initNavbar(navbarConfig, () => {
+    // Update navbar authentication state after navbar is ready
+    updateNavbarAuth(isUserAuthenticated(), {
+      firstName: userFirstName,
+      lastName: userLastName,
+      isAdmin: isUserAdmin
+    });
   });
 });
 ```
@@ -90,12 +102,11 @@ $(function() {
   - `image`: Path to logo image
   - `link`: URL for logo link
   - `alt`: Alt text for logo
-- `projects`: Array of project links for dropdown
-  - `name`: Display name
-  - `url`: Link URL
-- `about`: Array of about links for dropdown
-  - `name`: Display name
-  - `url`: Link URL
+- `sections`: Array of navbar sections
+  - `type`: Either `'dropdown'` or `'link'`
+  - `label`: Display text for the section
+  - For dropdowns: `items` array with `name` and `url` properties
+  - For links: `url` property for direct navigation
 
 ### Available Functions
 
@@ -139,3 +150,78 @@ This package requires the following peer dependencies:
 - `bootstrap` (^5.0.0)
 
 Make sure these are installed in your project.
+
+## Styling
+
+The package includes its own CSS for navbar-specific styling, including:
+- Mobile-responsive navbar layout
+- Proper ordering of navbar elements on mobile devices
+- Bootstrap integration
+
+The navbar styles are automatically imported when you use the package, so no additional CSS setup is required.
+
+## Example Configurations
+
+### Simple Project with Mixed Sections
+
+```javascript
+export const navbarConfig = {
+  brand: {
+    image: './assets/logo.svg',
+    link: '/',
+    alt: 'My Project'
+  },
+  sections: [
+    {
+      type: 'link',
+      label: 'Home',
+      url: '/'
+    },
+    {
+      type: 'dropdown',
+      label: 'Products',
+      items: [
+        { name: 'Product A', url: '/product-a.html' },
+        { name: 'Product B', url: '/product-b.html' }
+      ]
+    },
+    {
+      type: 'link',
+      label: 'Contact',
+      url: '/contact.html'
+    }
+  ]
+};
+```
+
+### Project with Only Dropdowns
+
+```javascript
+export const navbarConfig = {
+  brand: {
+    image: './assets/logo.svg',
+    link: '/',
+    alt: 'My Project'
+  },
+  sections: [
+    {
+      type: 'dropdown',
+      label: 'Services',
+      items: [
+        { name: 'Web Development', url: '/web-dev.html' },
+        { name: 'Mobile Apps', url: '/mobile.html' },
+        { name: 'Consulting', url: '/consulting.html' }
+      ]
+    },
+    {
+      type: 'dropdown',
+      label: 'Company',
+      items: [
+        { name: 'About Us', url: '/about.html' },
+        { name: 'Team', url: '/team.html' },
+        { name: 'Careers', url: '/careers.html' }
+      ]
+    }
+  ]
+};
+```
