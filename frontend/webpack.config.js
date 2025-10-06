@@ -17,14 +17,11 @@ const cfParams = Object.fromEntries(
 module.exports = {
   entry: {
     navonly: {
-      import: './src/scripts/navonly.js',
-      dependOn: 'shared'
+      import: './src/scripts/navonly.js'
     },
     login: {
-      import: "./src/scripts/login.js",
-      dependOn: "shared"
+      import: require.resolve('blr-shared-frontend/dist/login.js'),
     },
-    shared: './src/scripts/shared.js'
   },
   
   mode: 'development',
@@ -40,54 +37,59 @@ module.exports = {
       favicon: './src/images/favicon.ico',
       filename: 'index.html',
       template: './src/index.html',
-      chunks: ['shared', 'navonly']
+      chunks: ['navonly']
     }),
     new HtmlWebpack({
       title: "Login",
       filename: "login.html",
-      template: "./src/login.html",
-      chunks: ["shared", "login"]
+      template: require.resolve('blr-shared-frontend/src/login.html'),
+      chunks: ["navonly", "login"],
+      inject: true
     }),
     new HtmlWebpack({
       title: 'BLR Name',
       favicon: './src/images/favicon.ico',
       filename: 'name.html',
       template: './src/name.html',
-      chunks: ['shared', 'navonly']
+      chunks: ['navonly']
     }),
     new HtmlWebpack({
       title: 'BLR Author',
       favicon: './src/images/favicon.ico',
       filename: 'author.html',
       template: './src/author.html',
-      chunks: ['shared', 'navonly']
+      chunks: ['navonly']
     }),
     new HtmlWebpack({
       title: 'BLR Projects',
       favicon: './src/images/favicon.ico',
       filename: 'projects.html',
       template: './src/projects.html',
-      chunks: ['shared', 'navonly']
+      chunks: ['navonly']
     }),
     new HtmlWebpack({
       title: 'BLR Blog',
       favicon: './src/images/favicon.ico',
       filename: 'blog.html',
       template: './src/blog.html',
-      chunks: ['shared', 'navonly']
+      chunks: ['navonly']
     }),
     new HtmlWebpack({
       title: 'BLR WIP',
       favicon: './src/images/favicon.ico',
       filename: 'wip.html',
       template: './src/wip.html',
-      chunks: ['shared', 'navonly']
+      chunks: ['navonly']
     }),
     new CopyWebpack({
       patterns: [
         {
           from: './src/images',
           to: 'assets'
+        },
+        {
+          from: require.resolve('blr-shared-frontend/dist/login.js'),
+          to: 'scripts/login.bundle.js'
         }
       ]
     })

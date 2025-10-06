@@ -1,16 +1,20 @@
 const path = require('path');
+const HtmlWebpack = require('html-webpack-plugin')
 
 module.exports = {
-  entry: './src/index.js',
+  entry: {
+    index: './src/index.js',
+    login: './src/login.js'
+  },
   
   mode: 'production',
   
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'index.js',
+    filename: '[name].js', // Use [name] placeholder for multiple entries
     library: {
       type: 'umd',
-      name: 'BlrSharedFrontend'
+      name: '[name]' // Use [name] placeholder for library names
     },
     globalObject: 'this'
   },
@@ -23,6 +27,16 @@ module.exports = {
       }
     ]
   },
+
+  plugins: [
+    new HtmlWebpack({
+      title: 'Login',
+      filename: 'login.html',
+      template: './src/login.html',
+      chunks: ['login'],
+      inject: true
+    })
+  ],
   
   externals: {
     'jquery': {

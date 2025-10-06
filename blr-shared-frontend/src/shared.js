@@ -1,23 +1,48 @@
-import "../styles/custom.css"
 import $ from "jquery"
-import { initNavbar, updateNavbarAuth, initButtons, spinnerOn, spinnerOff } from "blr-shared-frontend"
-import { navbarConfig } from "../config/navbar-config.js"
+import { initNavbarConfig, updateNavbarAuth} from "./navbar.js"
 import { InitiateAuthCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 
-const poolData = {
-  UserPoolId: SUB_UserPoolId,
-  ClientId: SUB_UserPoolClientId
+export const COGNITO_CONFIG = {
+  UserPoolId: "us-east-1_lzSJUtNLD",
+  ClientId: "1tq5jpqipsvpi7vrpil17feob6",
+  Region: "us-east-1"
 };
 
 const client = new CognitoIdentityProviderClient({
-  region: "us-east-1"
+  region: COGNITO_CONFIG.Region
 });
 
+export function initButtons(buttonIdList) {
+  for (const buttonId of buttonIdList) {
+    const button = $(`#${buttonId}`);
+    const buttonText = button.text();
+    button.empty();
+    button.append($('<span>').text(buttonText));
+    button.append($('<div class="spinner-border spinner-border-sm" style="display: none;"></div>'));
+
+    // Store original dimensions and set fixed width
+    const width = button.outerWidth();
+    button.css({
+      width: width + 'px',
+    });
+  }
+}
+
+export function spinnerOn(buttonId) {
+  $(`#${buttonId} span`).hide();
+  $(`#${buttonId} div`).show();
+}
+
+export function spinnerOff(buttonId) {
+  $(`#${buttonId} span`).show();
+  $(`#${buttonId} div`).hide();
+}
+
 // Common init of navbar using shared package
-export function initCommon() {
+export function initNavbar(navbarConfig) {
   
   // Initialize navbar with callback to set up button handlers
-  initNavbar(navbarConfig, () => {    
+  initNavbarConfig(navbarConfig, () => {    
     $("#signin-button").on("click", () => {
       window.location.href = '/login.html';
     });
@@ -52,12 +77,25 @@ function updateAuthState() {
   }
 }
 
+export function signOut() {
+  // Update Sign Out
+  localStorage.removeItem('blr-accessToken');
+  localStorage.removeItem('blr-refreshToken');
+  localStorage.removeItem('blr-tokenExpiration');
+  localStorage.removeItem('blr-userFirstName');
+  localStorage.removeItem('blr-userLastName');
+  localStorage.removeItem('blr-isAdmin');
+
+  // Update navbar state
+  updateNavbarAuth(false);
+}
+
 // Add this new function to handle refresh
 async function refreshToken() {
   try {
       const command = new InitiateAuthCommand({
           AuthFlow: 'REFRESH_TOKEN_AUTH',
-          ClientId: poolData.ClientId,
+          ClientId: COGNITO_CONFIG.ClientId,
           AuthParameters: {
               'REFRESH_TOKEN': localStorage.getItem('blr-refreshToken')
           }
@@ -98,23 +136,7 @@ export async function getValidAccessToken() {
   }
 }
 
-export function signOut() {
-  // Update Sign Out
-  localStorage.removeItem('blr-accessToken');
-  localStorage.removeItem('blr-refreshToken');
-  localStorage.removeItem('blr-tokenExpiration');
-  localStorage.removeItem('blr-userFirstName');
-  localStorage.removeItem('blr-userLastName');
-  localStorage.removeItem('blr-isAdmin');
-
-  // Update navbar state
-  updateNavbarAuth(false);
-}
-
 export function isAuthenticated() {
   const accessToken = localStorage.getItem('blr-accessToken');
   return !!accessToken;
 }
-
-// Re-export utility functions from shared package
-export { initButtons, spinnerOn, spinnerOff } from "blr-shared-frontend";

@@ -1,6 +1,9 @@
+import "../styles/custom.css"
 import $ from "jquery"
-import { initCommon } from "./shared.js"
+import { initNavbar } from "blr-shared-frontend"
+import { navbarConfig } from "../config/navbar-config.js"
+
 $(function() { 
-  initCommon()
+  initNavbar(navbarConfig)
 })
 

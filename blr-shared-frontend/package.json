@@ -24,7 +24,8 @@
   "license": "MIT",
   "dependencies": {
     "bootstrap": "^5.0.0",
-    "jquery": "^3.5.0"
+    "jquery": "^3.5.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.744.0"
   },
   "devDependencies": {
     "webpack": "^5.90.3",
@@ -32,6 +33,7 @@
     "css-loader": "^6.10.0",
     "style-loader": "^3.3.4",
     "typescript": "^5.0.0",
+    "html-webpack-plugin": "^5.6.0",
     "@types/jquery": "^3.5.0"
   },
   "peerDependencies": {

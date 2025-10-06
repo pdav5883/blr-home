@@ -8,28 +8,23 @@ import {
 } from "@aws-sdk/client-cognito-identity-provider";
 
 import {
-    initCommon,
     initButtons,
     spinnerOn,
     spinnerOff,
     isAuthenticated,
+    COGNITO_CONFIG
 } from "./shared.js"
 
 import $ from "jquery"
 
-const poolData = {
-    UserPoolId: SUB_UserPoolId,
-    ClientId: SUB_UserPoolClientId
-};
-
 // Initialize the Cognito client
 const client = new CognitoIdentityProviderClient({
-    region: "us-east-1"
+    region: COGNITO_CONFIG.Region
 });
 
 // Move all UI initialization into a DOMContentLoaded event listener
 $(async function () {
-    initCommon()
+
     initButtons(["signupButton", "signinButton"])
     // Show/Hide Forms
     $("#signupForm").hide();
@@ -92,7 +87,7 @@ $("#signupButton").on("click", async (e) => {
 
     try {
         const command = new SignUpCommand({
-            ClientId: poolData.ClientId,
+            ClientId: COGNITO_CONFIG.ClientId,
             Username: email,
             Password: 'dummy-password', // Not used in custom auth
             UserAttributes: userAttributes
@@ -150,7 +145,7 @@ async function startAuthFlow(email) {
     try {
         const command = new InitiateAuthCommand({
             AuthFlow: 'CUSTOM_AUTH',
-            ClientId: poolData.ClientId,
+            ClientId: COGNITO_CONFIG.ClientId,
             AuthParameters: authParams
         });
 
@@ -209,7 +204,7 @@ async function handleVerification() {
             }
 
             const command = new RespondToAuthChallengeCommand({
-                ClientId: poolData.ClientId,
+                ClientId: COGNITO_CONFIG.ClientId,
                 ChallengeName: 'CUSTOM_CHALLENGE',
                 Session: session,  // Use the stored session
                 ChallengeResponses: {
