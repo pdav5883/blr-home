@@ -48,6 +48,8 @@ def get_user_cognito(access_token):
         error_code = e.response['Error']['Code']
         if error_code == 'NotAuthorizedException':
             return None  # or raise a custom exception
+        elif error_code == 'InvalidParameterException':
+            return None  # Handle malformed/invalid token format
         else:
             raise e  # Re-raise other errors
 

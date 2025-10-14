@@ -306,7 +306,11 @@ Resources:
           AttributeDataType: Boolean
           Mutable: true
           Required: false
-        - Name: custom:is_admin
+        - Name: custom:auth_domain # have to retain bc can't delete from schema
+          AttributeDataType: String
+          Mutable: true
+          Required: false
+        - Name: custom:is_admin # have to retain bc can't delete from schema
           AttributeDataType: Boolean
           Mutable: true
           Required: false

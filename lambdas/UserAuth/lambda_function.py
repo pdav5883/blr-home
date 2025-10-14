@@ -73,7 +73,9 @@ def admin_user_endpoint_auth(event, context):
 
     user = blr_utils.get_user_cognito(access_token)
 
-    if user_is_admin(user['Username']):
+    if user is None:
+        return {"isAuthorized": False}
+    elif user_is_admin(user['Username']):
         return {"isAuthorized": True}
     else:
         return {"isAuthorized": False}

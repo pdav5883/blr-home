@@ -3,14 +3,40 @@ import { initNavbarConfig, updateNavbarAuth} from "./navbar.js"
 import { InitiateAuthCommand, CognitoIdentityProviderClient } from "@aws-sdk/client-cognito-identity-provider";
 
 export const COGNITO_CONFIG = {
-  UserPoolId: "us-east-1_lzSJUtNLD",
+  UserPoolId: "us-east-1_lzSJUtNLD", // TODO: change to cfn substitution
   ClientId: "1tq5jpqipsvpi7vrpil17feob6",
-  Region: "us-east-1"
+  Region: "us-east-1",
+  DeployedRootURL: "http://home.bearloves.rocks"
 };
 
 const client = new CognitoIdentityProviderClient({
   region: COGNITO_CONFIG.Region
 });
+
+// Cookie utility functions for cross-subdomain authentication
+const COOKIE_DOMAIN = '.bearloves.rocks';
+
+export function setCookie(name, value, days = 365) {
+  const date = new Date();
+  date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+  const expires = `expires=${date.toUTCString()}`;
+  document.cookie = `${name}=${value};${expires};domain=${COOKIE_DOMAIN};path=/;SameSite=Lax`;
+}
+
+export function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+  }
+  return null;
+}
+
+export function deleteCookie(name) {
+  document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;domain=${COOKIE_DOMAIN};path=/`;
+}
 
 export function initButtons(buttonIdList) {
   for (const buttonId of buttonIdList) {
@@ -44,7 +70,8 @@ export function initNavbar(navbarConfig) {
   // Initialize navbar with callback to set up button handlers
   initNavbarConfig(navbarConfig, () => {    
     $("#signin-button").on("click", () => {
-      window.location.href = '/login.html';
+      // window.location.href = '/login.html';
+      window.location.href = COGNITO_CONFIG.DeployedRootURL + '/login.html?redirectUrl=' + window.location.href;
     });
     
     $("#admin-button").on("click", () => {
@@ -63,9 +90,9 @@ export function initNavbar(navbarConfig) {
 // Update authentication state in navbar
 function updateAuthState() {
   if (isAuthenticated()) {
-    const userFirstName = localStorage.getItem('blr-userFirstName');
-    const userLastName = localStorage.getItem('blr-userLastName');
-    const isAdmin = localStorage.getItem('blr-isAdmin') === 'true';
+    const userFirstName = getCookie('blr-userFirstName');
+    const userLastName = getCookie('blr-userLastName');
+    const isAdmin = getCookie('blr-isAdmin') === 'true';
     
     updateNavbarAuth(true, {
       firstName: userFirstName,
@@ -79,12 +106,12 @@ function updateAuthState() {
 
 export function signOut() {
   // Update Sign Out
-  localStorage.removeItem('blr-accessToken');
-  localStorage.removeItem('blr-refreshToken');
-  localStorage.removeItem('blr-tokenExpiration');
-  localStorage.removeItem('blr-userFirstName');
-  localStorage.removeItem('blr-userLastName');
-  localStorage.removeItem('blr-isAdmin');
+  deleteCookie('blr-accessToken');
+  deleteCookie('blr-refreshToken');
+  deleteCookie('blr-tokenExpiration');
+  deleteCookie('blr-userFirstName');
+  deleteCookie('blr-userLastName');
+  deleteCookie('blr-isAdmin');
 
   // Update navbar state
   updateNavbarAuth(false);
@@ -97,15 +124,15 @@ async function refreshToken() {
           AuthFlow: 'REFRESH_TOKEN_AUTH',
           ClientId: COGNITO_CONFIG.ClientId,
           AuthParameters: {
-              'REFRESH_TOKEN': localStorage.getItem('blr-refreshToken')
+              'REFRESH_TOKEN': getCookie('blr-refreshToken')
           }
       });
 
       const response = await client.send(command);
       
       if (response.AuthenticationResult) {
-          localStorage.setItem('blr-accessToken', response.AuthenticationResult.AccessToken);
-          localStorage.setItem('blr-tokenExpiration', Date.now() + (response.AuthenticationResult.ExpiresIn * 1000));
+          setCookie('blr-accessToken', response.AuthenticationResult.AccessToken);
+          setCookie('blr-tokenExpiration', Date.now() + (response.AuthenticationResult.ExpiresIn * 1000));
           return response.AuthenticationResult.AccessToken;
       }
   } catch (error) {
@@ -118,7 +145,7 @@ async function refreshToken() {
 
 // Add this function to check and refresh token when needed
 export async function getValidAccessToken() {
-  const expiration = localStorage.getItem('blr-tokenExpiration');
+  const expiration = getCookie('blr-tokenExpiration');
 
   if (expiration === null) {
     console.error('User is not logged in.')
@@ -132,11 +159,11 @@ export async function getValidAccessToken() {
       return await refreshToken();
   }
   else {
-    return localStorage.getItem('blr-accessToken');
+    return getCookie('blr-accessToken');
   }
 }
 
 export function isAuthenticated() {
-  const accessToken = localStorage.getItem('blr-accessToken');
+  const accessToken = getCookie('blr-accessToken');
   return !!accessToken;
 }

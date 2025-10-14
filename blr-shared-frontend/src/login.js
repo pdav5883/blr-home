@@ -12,7 +12,10 @@ import {
     spinnerOn,
     spinnerOff,
     isAuthenticated,
-    COGNITO_CONFIG
+    COGNITO_CONFIG,
+    setCookie,
+    getCookie,
+    deleteCookie
 } from "./shared.js"
 
 import $ from "jquery"
@@ -151,28 +154,28 @@ async function startAuthFlow(email) {
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has('redirectUrl')) {
-            localStorage.setItem('blr-redirectUrl', urlParams.get('redirectUrl'));
+            setCookie('blr-redirectUrl', urlParams.get('redirectUrl'), 1); // Short-lived cookie
         }
 
         const response = await client.send(command);
 
         if (response.ChallengeName === 'CUSTOM_CHALLENGE') {
             // Store the session for later use
-            localStorage.setItem('cognitoSession', response.Session);
+            setCookie('cognitoSession', response.Session, 1); // Short-lived cookie
             $("#signinForm").hide()
             $("#signupForm").hide()
             clearMessage();
             $("#statustext").text('Check your email for a verification link. You can close this tab.');
             $("#statustext").show();
         } else if (response.AuthenticationResult) {
-            localStorage.setItem('blr-accessToken', response.AuthenticationResult.AccessToken);
-            localStorage.setItem('blr-refreshToken', response.AuthenticationResult.RefreshToken);
-            localStorage.setItem('blr-tokenExpiration', Date.now() + (response.AuthenticationResult.ExpiresIn * 1000));
-            localStorage.removeItem('cognitoSession');
+            setCookie('blr-accessToken', response.AuthenticationResult.AccessToken);
+            setCookie('blr-refreshToken', response.AuthenticationResult.RefreshToken);
+            setCookie('blr-tokenExpiration', Date.now() + (response.AuthenticationResult.ExpiresIn * 1000));
+            deleteCookie('cognitoSession');
             const attributes = await getUserAttributes();
-            localStorage.setItem('blr-userFirstName', attributes.given_name);
-            localStorage.setItem('blr-userLastName', attributes.family_name);
-            localStorage.setItem('blr-isAdmin', attributes['custom:is_admin'] === 'true');
+            setCookie('blr-userFirstName', attributes.given_name);
+            setCookie('blr-userLastName', attributes.family_name);
+            setCookie('blr-isAdmin', attributes['custom:is_admin'] === 'true');
             leavePage()
         }
     } catch (error) {
@@ -197,8 +200,8 @@ async function handleVerification() {
 
     if (code && email) {
         try {
-            // Retrieve the session from localStorage
-            const session = localStorage.getItem('cognitoSession');
+            // Retrieve the session from cookies
+            const session = getCookie('cognitoSession');
             if (!session) {
                 throw new Error('No session found. Please try signing in again.');
             }
@@ -216,14 +219,14 @@ async function handleVerification() {
             const response = await client.send(command);
 
             if (response.AuthenticationResult) {
-                localStorage.setItem('blr-accessToken', response.AuthenticationResult.AccessToken);
-                localStorage.setItem('blr-refreshToken', response.AuthenticationResult.RefreshToken);
-                localStorage.setItem('blr-tokenExpiration', Date.now() + (response.AuthenticationResult.ExpiresIn * 1000));
-                localStorage.removeItem('cognitoSession');
+                setCookie('blr-accessToken', response.AuthenticationResult.AccessToken);
+                setCookie('blr-refreshToken', response.AuthenticationResult.RefreshToken);
+                setCookie('blr-tokenExpiration', Date.now() + (response.AuthenticationResult.ExpiresIn * 1000));
+                deleteCookie('cognitoSession');
                 const attributes = await getUserAttributes();
-                localStorage.setItem('blr-userFirstName', attributes.given_name);
-                localStorage.setItem('blr-userLastName', attributes.family_name);
-                localStorage.setItem('blr-isAdmin', attributes['custom:is_admin'] === 'true');
+                setCookie('blr-userFirstName', attributes.given_name);
+                setCookie('blr-userLastName', attributes.family_name);
+                setCookie('blr-isAdmin', attributes['custom:is_admin'] === 'true');
             }
         } catch (error) {
             $("#statustext").text('Verification failed: ' + error.message);
@@ -237,7 +240,7 @@ async function handleVerification() {
 
 async function getUserAttributes() {
     try {
-        const accessToken = localStorage.getItem('blr-accessToken');
+        const accessToken = getCookie('blr-accessToken');
         if (!accessToken) {
             throw new Error('Not authenticated');
         }
@@ -283,13 +286,13 @@ function showSignUpForm() {
 }
 
 function leavePage() {
-    const redirectUrl = localStorage.getItem('blr-redirectUrl');
+    const redirectUrl = getCookie('blr-redirectUrl');
     console.log('Attempting to redirect to:', redirectUrl); // Debug log
 
     if (redirectUrl === null) {
         window.location.href = '/';
     } else {
-        localStorage.removeItem('blr-redirectUrl');
+        deleteCookie('blr-redirectUrl');
         window.location.href = decodeURIComponent(redirectUrl);
     }
 }
