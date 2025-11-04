@@ -19,6 +19,7 @@ export const navbarConfig = {
         { name: 'bracket-revival', url: 'https://bracket.bearloves.rocks' },
         { name: 'budget-tracker', url: 'https://budget.bearloves.rocks' },
         { name: 'sat-finder', url: 'https://sats.bearloves.rocks' },
+        { name: 'stormalytics', url: 'https://storm.bearloves.rocks' },
         { name: 'web-salad', url: 'https://salad.bearloves.rocks' },
         { name: 'blog', url: '/blog.html' }
       ]
